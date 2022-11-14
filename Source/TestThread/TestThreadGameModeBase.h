@@ -33,6 +33,8 @@ public:
 	bool bIsUseSafeVariable = true;
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsUseFEvent = true;
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsUseFScopedEvent = true;
 
 	class FSimpleCounter_Runnable* MyRunnableClass_SimpleCounter = nullptr;
 	FRunnableThread* CurrentRunningGameModeThread_SimpleCounter = nullptr;
@@ -55,6 +57,8 @@ public:
 	void StartSimpleCounterThreadWithEvent();
 	UFUNCTION(BlueprintCallable)
 	void StartSimpleCounterThreadWithScopedEvent();
+
+	void SendRef_ScopedEvent(FScopedEvent &ScopedEvent_Ref);
 
 	
 	//SimpleAtomic Settings

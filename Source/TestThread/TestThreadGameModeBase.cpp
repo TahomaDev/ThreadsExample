@@ -170,3 +170,8 @@ void ATestThreadGameModeBase::StartSimpleCounterThreadWithScopedEvent()
 		SimpleCounterScopedEvent_Ref = nullptr;
 	}
 }
+
+void ATestThreadGameModeBase::SendRef_ScopedEvent(FScopedEvent& ScopedEvent_Ref)
+{
+	SimpleCounterScopedEvent_Ref = &ScopedEvent_Ref;
+}

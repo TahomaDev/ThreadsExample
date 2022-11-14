@@ -19,6 +19,14 @@ bool FSimpleCounter_Runnable::Init()
 //#pragma optimize("", off)
 uint32 FSimpleCounter_Runnable::Run()
 {
+	//FScopedEvent
+	if (Owner->bIsUseFScopedEvent)
+	{
+		{
+			FScopedEvent SimpleCounterScopedEvent;
+			Owner->SendRef_ScopedEvent(SimpleCounterScopedEvent);
+		}
+	}
 
 	//FEvent
 	if (Owner->SimpleCounterEvent)
@@ -26,8 +34,6 @@ uint32 FSimpleCounter_Runnable::Run()
 		Owner->SimpleCounterEvent->Wait(10000);
 	}
 
-
-	
 	
 	if (bIsUseSafeVariable)
 	{
