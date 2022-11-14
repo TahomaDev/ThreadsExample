@@ -4,6 +4,8 @@
 #include "TestThreadGameModeBase.h"
 #include "SimPrim/SimpleAtomic_Runnable.h"
 #include "SimPrim/SimpleCounter_Runnable.h"
+#include "SimPrim/SimpleMutex_Runnable.h"
+#include "SimPrim/SimpleCollectable_Runnable.h"
 
 
 
@@ -31,6 +33,7 @@ void ATestThreadGameModeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 
 	StopSimpleCounterThread();
+	StopSimpleMutexThreads();
 }
 
 
@@ -175,3 +178,76 @@ void ATestThreadGameModeBase::SendRef_ScopedEvent(FScopedEvent& ScopedEvent_Ref)
 {
 	SimpleCounterScopedEvent_Ref = &ScopedEvent_Ref;
 }
+
+
+
+
+void ATestThreadGameModeBase::CreateSimpleMutexThread()
+{
+	FColor Color = FColor::Silver;
+	
+	for (int i = 0; i < 4; i++)
+	{
+		bool bFlag = (i%2) ? true : false;
+
+		class FSimpleMutex_Runnable* SimpleMutex_Runnable = new FSimpleMutex_Runnable(Color, this, bFlag);
+		CurrentRunningGameModeThread_SimpleMutex.Add(FRunnableThread::Create(SimpleMutex_Runnable, TEXT("SimpleMutex Thread"), 0, EThreadPriority::TPri_Normal));
+		
+	}
+}
+
+void ATestThreadGameModeBase::CreateSimpleCollectableThread()
+{
+	FColor Color = FColor::Cyan;
+	class FSimpleCollectable_Runnable* SimpleCollectable_Runnable = new FSimpleCollectable_Runnable(Color, this);
+	CurrentRunningGameModeThread_SimpleCollectable = FRunnableThread::Create(SimpleCollectable_Runnable, TEXT("SimpleCollectable Thread"), 0, EThreadPriority::TPri_Normal);
+}
+
+void ATestThreadGameModeBase::StopSimpleMutexThreads()
+{
+	if (CurrentRunningGameModeThread_SimpleMutex.Num() > 0)
+	{
+		for (auto RunnableThread : CurrentRunningGameModeThread_SimpleMutex)
+		{
+			if (RunnableThread != nullptr)
+			{
+				RunnableThread->Kill(true);
+			}
+		}
+		CurrentRunningGameModeThread_SimpleMutex.Empty();
+	}
+	
+	if (CurrentRunningGameModeThread_SimpleCollectable != nullptr)
+	{
+		CurrentRunningGameModeThread_SimpleCollectable->Kill(true);
+		CurrentRunningGameModeThread_SimpleCollectable = nullptr;
+	}
+}
+
+TArray<FString> ATestThreadGameModeBase::GetSecondNames()
+{
+	TArray<FString> Result;
+	FString ReadSecondName;
+	while (SecondName.Dequeue(ReadSecondName))
+	{
+		Result.Add(ReadSecondName);
+	}
+
+	CurrentSecondName.Append(Result);
+	
+	return CurrentSecondName;
+}
+
+TArray<FString> ATestThreadGameModeBase::GetFirstNames()
+{
+	TArray<FString> Result;
+	Result = FirstNames;
+	return Result;
+}
+
+TArray<FInfoNPC> ATestThreadGameModeBase::GetNPCInfo()
+{
+	TArray<FInfoNPC> Result;
+	return Result;
+}
+

@@ -8,6 +8,19 @@
 
 #include "TestThreadGameModeBase.generated.h"
 
+USTRUCT(BlueprintType)
+struct FInfoNPC
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Id = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString Name = "None";
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString SecondName = "None";
+};
+
 /**
  * 
  */
@@ -77,5 +90,30 @@ public:
 	std::atomic_int16_t AtomicCounter2;
 	int16 NotAtomicCounter1;
 	int16 NotAtomicCounter2;
+
+
+	//SimpleMutex settings
+	TArray<FRunnableThread*> CurrentRunningGameModeThread_SimpleMutex;
+	FRunnableThread* CurrentRunningGameModeThread_SimpleCollectable;
+
+	//SimpleMutex control
+	UFUNCTION(BlueprintCallable)
+	void CreateSimpleMutexThread();
+	UFUNCTION(BlueprintCallable)
+	void CreateSimpleCollectableThread();
+	UFUNCTION(BlueprintCallable)
+	void StopSimpleMutexThreads();
+	UFUNCTION(BlueprintCallable)
+	TArray<FString> GetSecondNames();
+	UFUNCTION(BlueprintCallable)
+	TArray<FString> GetFirstNames();
+	UFUNCTION(BlueprintCallable)
+	TArray<FInfoNPC> GetNPCInfo();
 	
+	//SimpleMutex storage
+	TArray<FString> FirstNames;
+	FCriticalSection FirstNameMutex;
+
+	TQueue<FString, EQueueMode::Mpsc> SecondName;
+	TArray<FString> CurrentSecondName;
 };
