@@ -2,11 +2,15 @@
 
 #include <random>
 
+#include "MessageEndpointBuilder.h"
+
 FSimpleMutex_Runnable::FSimpleMutex_Runnable(FColor NewColor, ATestThreadGameModeBase* OwnerActor, bool IsSecondMode)
 {
 	Color = NewColor;
 	Owner = OwnerActor;
 	bIsGenerateSecondName = IsSecondMode;
+
+	SenderEndPoint = FMessageEndpoint::Builder("Sender_FSimpleMutes_Runnable").Build();
 }
 
 FSimpleMutex_Runnable::~FSimpleMutex_Runnable()
@@ -67,6 +71,11 @@ uint32 FSimpleMutex_Runnable::Run()
 			Owner->FirstNames.Add(Result);
 			Owner->FirstNameMutex.Unlock();
 		}
+
+		if (SenderEndPoint.IsValid())
+		{
+			SenderEndPoint->Publish<FBusStructMessage_NameGenerator>(new FBusStructMessage_NameGenerator(bIsGenerateSecondName, Result));
+		}
 	}
 	
 	return 1;
@@ -79,6 +88,10 @@ void FSimpleMutex_Runnable::Stop()
 
 void FSimpleMutex_Runnable::Exit()
 {
+	//IBusMessage
+	if (SenderEndPoint.IsValid())
+		SenderEndPoint.Reset();
+	
 	Owner = nullptr;
 }
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MessageEndpoint.h"
 #include "GameFramework/GameModeBase.h"
 #include "HAL/ThreadingBase.h"
 
@@ -21,6 +22,20 @@ struct FInfoNPC
 	FString SecondName = "None";
 };
 
+USTRUCT(BlueprintType)
+struct FBusStructMessage_NameGenerator
+{
+	GENERATED_BODY()
+
+	bool bIsSecondName = false;
+	FString TextData = "None";
+
+	FBusStructMessage_NameGenerator(bool InBool = false, FString InText = "None") : bIsSecondName(InBool), TextData(InText) {}  
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUpdateByNameGeneratorThreads, bool, bIsSecond, FString, StringData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUpdateByNPCThread, FInfoNPC, DataNPC);
+
 /**
  * 
  */
@@ -33,6 +48,21 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	//IBusMessage
+	UPROPERTY(BlueprintAssignable)
+	FOnUpdateByNameGeneratorThreads OnUpdateByNameGeneratorThreads;
+	UPROPERTY(BlueprintAssignable)
+	FOnUpdateByNPCThread OnUpdateByNPCThread;
+	TSharedPtr<FMessageEndpoint, ESPMode::ThreadSafe> ReceiveEndPoint_NameGenerator;
+	TSharedPtr<FMessageEndpoint, ESPMode::ThreadSafe> ReceiveEndPoint_NPCInfo;
+	void BusMessageHandler_NameGenerator(const FBusStructMessage_NameGenerator& Message, const TSharedRef<IMessageContext, ESPMode::ThreadSafe>& Context);
+	void BusMessageHandler_NPCInfo(const FInfoNPC& Message, const TSharedRef<IMessageContext, ESPMode::ThreadSafe>& Context);
+	void EventMessage_NameGenerator(bool bIsSecondName, FString StringData);
+	void EventMessage_NPCInfo(FInfoNPC NPCData);
+
+
+	
 
 	UPROPERTY(BlueprintReadWrite, Category="SimpleAtomic Settings")
 	int32 IteractionRunnableCircle = 100000;
@@ -73,6 +103,8 @@ public:
 
 	void SendRef_ScopedEvent(FScopedEvent &ScopedEvent_Ref);
 
+
+
 	
 	//SimpleAtomic Settings
 	TArray<FRunnableThread*> CurrentRunnableGameMode_SimpleAtomic;
@@ -92,6 +124,8 @@ public:
 	int16 NotAtomicCounter2;
 
 
+
+	
 	//SimpleMutex settings
 	TArray<FRunnableThread*> CurrentRunningGameModeThread_SimpleMutex;
 	FRunnableThread* CurrentRunningGameModeThread_SimpleCollectable;

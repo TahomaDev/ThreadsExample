@@ -21,5 +21,7 @@ public:
 
 	int8 GetRandomInt8(int8 min, int8 max);
 	bool GetRandomBool();
+
+	TSharedPtr<FMessageEndpoint, ESPMode::ThreadSafe> SenderEndPoint;
 	
 };

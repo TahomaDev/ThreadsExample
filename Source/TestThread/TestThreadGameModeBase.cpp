@@ -2,6 +2,8 @@
 
 
 #include "TestThreadGameModeBase.h"
+
+#include "MessageEndpointBuilder.h"
 #include "SimPrim/SimpleAtomic_Runnable.h"
 #include "SimPrim/SimpleCounter_Runnable.h"
 #include "SimPrim/SimpleMutex_Runnable.h"
@@ -25,6 +27,13 @@ void ATestThreadGameModeBase::Tick(float DeltaSeconds)
 void ATestThreadGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//IBusMessage
+	ReceiveEndPoint_NameGenerator = FMessageEndpoint::Builder("Resiever_ATestThreadGameModeBase").Handling<FBusStructMessage_NameGenerator>(this, &ATestThreadGameModeBase::BusMessageHandler_NameGenerator);
+	if (ReceiveEndPoint_NameGenerator.IsValid())
+	{
+		ReceiveEndPoint_NameGenerator->Subscribe<FBusStructMessage_NameGenerator>();
+	}
 }
 
 
@@ -34,7 +43,12 @@ void ATestThreadGameModeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	StopSimpleCounterThread();
 	StopSimpleMutexThreads();
+
+	//IBusMessage
+	if (ReceiveEndPoint_NameGenerator.IsValid())
+		ReceiveEndPoint_NameGenerator.Reset();
 }
+
 
 
 void ATestThreadGameModeBase::CreateSimpleAtomicThread()
@@ -251,3 +265,23 @@ TArray<FInfoNPC> ATestThreadGameModeBase::GetNPCInfo()
 	return Result;
 }
 
+
+void ATestThreadGameModeBase::BusMessageHandler_NameGenerator(const FBusStructMessage_NameGenerator& Message,
+	const TSharedRef<IMessageContext, ESPMode::ThreadSafe>& Context)
+{
+	EventMessage_NameGenerator(Message.bIsSecondName, Message.TextData);
+}
+
+void ATestThreadGameModeBase::BusMessageHandler_NPCInfo(const FInfoNPC& Message,
+	const TSharedRef<IMessageContext, ESPMode::ThreadSafe>& Context)
+{
+}
+
+void ATestThreadGameModeBase::EventMessage_NameGenerator(bool bIsSecondName, FString StringData)
+{
+	OnUpdateByNameGeneratorThreads.Broadcast(bIsSecondName, StringData);
+}
+
+void ATestThreadGameModeBase::EventMessage_NPCInfo(FInfoNPC NPCData)
+{
+}
