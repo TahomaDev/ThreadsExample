@@ -19,6 +19,16 @@ bool FSimpleCounter_Runnable::Init()
 //#pragma optimize("", off)
 uint32 FSimpleCounter_Runnable::Run()
 {
+
+	//FEvent
+	if (Owner->SimpleCounterEvent)
+	{
+		Owner->SimpleCounterEvent->Wait(10000);
+	}
+
+
+	
+	
 	if (bIsUseSafeVariable)
 	{
 		while (!bIsStopThreadSafe)

@@ -76,6 +76,11 @@ void ATestThreadGameModeBase::ResetCounterSimpleAtomicThread()
 
 void ATestThreadGameModeBase::CreateSimpleCounterThread()
 {
+	if (bIsUseFEvent)
+	{
+		SimpleCounterEvent = FPlatformProcess::GetSynchEventFromPool();
+	}
+	
 	if (CurrentRunningGameModeThread_SimpleCounter == nullptr && MyRunnableClass_SimpleCounter == nullptr)
 	{
 		const FColor Color = FColor::Cyan;
@@ -94,6 +99,20 @@ void ATestThreadGameModeBase::StopSimpleCounterThread()
 			MyRunnableClass_SimpleCounter->bIsStopThread = true;
 			MyRunnableClass_SimpleCounter->bIsStopThreadSafe = true;
 			CurrentRunningGameModeThread_SimpleCounter->Suspend(false);
+
+			if (SimpleCounterEvent)
+			{
+				SimpleCounterEvent->Trigger();
+				FPlatformProcess::ReturnSynchEventToPool(SimpleCounterEvent);
+				SimpleCounterEvent = nullptr;
+			}
+
+			if (SimpleCounterScopedEvent_Ref)
+			{
+				SimpleCounterScopedEvent_Ref->Trigger();
+				SimpleCounterScopedEvent_Ref = nullptr;
+			}
+			
 			CurrentRunningGameModeThread_SimpleCounter->WaitForCompletion();
 			CurrentRunningGameModeThread_SimpleCounter = nullptr;
 			MyRunnableClass_SimpleCounter = nullptr;
@@ -107,6 +126,7 @@ void ATestThreadGameModeBase::KillSimpleCounterThread(bool bIsShouldWait)
 	{
 		CurrentRunningGameModeThread_SimpleCounter->Suspend(false);
 		CurrentRunningGameModeThread_SimpleCounter->Kill(bIsShouldWait);
+		delete CurrentRunningGameModeThread_SimpleCounter;
 		CurrentRunningGameModeThread_SimpleCounter = nullptr;
 		MyRunnableClass_SimpleCounter = nullptr;
 	}
@@ -131,4 +151,22 @@ bool ATestThreadGameModeBase::SwitchRunStateSimpleCounterThread(bool bIsPause)
 	}
 
 	return !bIsPause;
+}
+
+void ATestThreadGameModeBase::StartSimpleCounterThreadWithEvent()
+{
+	if (SimpleCounterEvent)
+	{
+		SimpleCounterEvent->Trigger();
+		//SimpleCounterEvent = nullptr;
+	}
+}
+
+void ATestThreadGameModeBase::StartSimpleCounterThreadWithScopedEvent()
+{
+	if (SimpleCounterScopedEvent_Ref)
+	{
+		SimpleCounterScopedEvent_Ref->Trigger();
+		SimpleCounterScopedEvent_Ref = nullptr;
+	}
 }
