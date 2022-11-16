@@ -147,7 +147,15 @@ public:
 	//SimpleMutex storage
 	TArray<FString> FirstNames;
 	FCriticalSection FirstNameMutex;
+	TArray<FInfoNPC> NPCInfo;
+	FCriticalSection NPCInfoMutex;
 
 	TQueue<FString, EQueueMode::Mpsc> SecondName;
 	TArray<FString> CurrentSecondName;
+
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Settings")
+	TSubclassOf<class ASRCBoxActor> ActorSpawn;
+	
 };

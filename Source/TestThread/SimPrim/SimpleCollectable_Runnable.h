@@ -15,5 +15,7 @@ public:
 
 	FColor Color;
 	ATestThreadGameModeBase* Owner;
+	FThreadSafeBool bIsStopCollectable = false;
+	TSharedPtr<FMessageEndpoint, ESPMode::ThreadSafe> SenderEndPoint;
 	
 };
