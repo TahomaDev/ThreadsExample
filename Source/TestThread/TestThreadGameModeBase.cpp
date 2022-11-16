@@ -4,6 +4,7 @@
 #include "TestThreadGameModeBase.h"
 
 #include "MessageEndpointBuilder.h"
+#include "SRCBoxActor.h"
 #include "SimPrim/SimpleAtomic_Runnable.h"
 #include "SimPrim/SimpleCounter_Runnable.h"
 #include "SimPrim/SimpleMutex_Runnable.h"
@@ -29,10 +30,16 @@ void ATestThreadGameModeBase::BeginPlay()
 	Super::BeginPlay();
 
 	//IBusMessage
-	ReceiveEndPoint_NameGenerator = FMessageEndpoint::Builder("Resiever_ATestThreadGameModeBase").Handling<FBusStructMessage_NameGenerator>(this, &ATestThreadGameModeBase::BusMessageHandler_NameGenerator);
+	ReceiveEndPoint_NameGenerator = FMessageEndpoint::Builder("Receiver_ATestThreadGameModeBase").Handling<FBusStructMessage_NameGenerator>(this, &ATestThreadGameModeBase::BusMessageHandler_NameGenerator);
 	if (ReceiveEndPoint_NameGenerator.IsValid())
 	{
 		ReceiveEndPoint_NameGenerator->Subscribe<FBusStructMessage_NameGenerator>();
+	}
+
+	ReceiveEndPoint_NPCInfo = FMessageEndpoint::Builder("Receiver_ATestThreadGameModeBaseNPC").Handling<FInfoNPC>(this, &ATestThreadGameModeBase::BusMessageHandler_NPCInfo);
+	if (ReceiveEndPoint_NPCInfo.IsValid())
+	{
+		ReceiveEndPoint_NPCInfo->Subscribe<FInfoNPC>();
 	}
 }
 
@@ -254,9 +261,13 @@ TArray<FString> ATestThreadGameModeBase::GetSecondNames()
 
 TArray<FString> ATestThreadGameModeBase::GetFirstNames()
 {
-	TArray<FString> Result;
-	Result = FirstNames;
-	return Result;
+//	TArray<FString> Result;
+//	Result = FirstNames;
+//	return Result;
+	{
+		FScopeLock ScopedFirstNameLocker(&FirstNameMutex);
+		return FirstNames;
+	}
 }
 
 TArray<FInfoNPC> ATestThreadGameModeBase::GetNPCInfo()
@@ -275,6 +286,7 @@ void ATestThreadGameModeBase::BusMessageHandler_NameGenerator(const FBusStructMe
 void ATestThreadGameModeBase::BusMessageHandler_NPCInfo(const FInfoNPC& Message,
 	const TSharedRef<IMessageContext, ESPMode::ThreadSafe>& Context)
 {
+	EventMessage_NPCInfo(Message);
 }
 
 void ATestThreadGameModeBase::EventMessage_NameGenerator(bool bIsSecondName, FString StringData)
@@ -284,4 +296,18 @@ void ATestThreadGameModeBase::EventMessage_NameGenerator(bool bIsSecondName, FSt
 
 void ATestThreadGameModeBase::EventMessage_NPCInfo(FInfoNPC NPCData)
 {
+	OnUpdateByNPCThread.Broadcast(NPCData);
+
+	UWorld *MyWorld = GetWorld();
+	if (MyWorld != nullptr && ActorSpawn != nullptr)
+	{
+		float SpawnStep = (NPCData.Id > 1) ? 60.f : 120.f;
+		int Direction = (NPCData.Id % 2) ? 1 : -1;
+		FVector SpawnLocation = FVector(1200.f, SpawnStep * NPCData.Id * Direction, 50.f); 
+		FRotator SpawnRotator = FRotator::ZeroRotator;
+		FActorSpawnParameters SpawnParameters;
+		ASRCBoxActor *BoxActor = Cast<ASRCBoxActor>(MyWorld->SpawnActor(ActorSpawn, &SpawnLocation, &SpawnRotator, SpawnParameters));
+		if (BoxActor != nullptr)
+			BoxActor->Init(NPCData);
+	}
 }
