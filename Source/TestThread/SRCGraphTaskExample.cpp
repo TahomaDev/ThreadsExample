@@ -27,7 +27,7 @@ void ASRCGraphTaskExample::BeginPlay()
 			.ConstructAndDispatchWhenReady(TaskDelegate, GameModeRef, &Counter, 321);
 */
 		MyCurrentTask = TGraphTask<FTask_GraphTask>::CreateTask(nullptr, ENamedThreads::AnyThread)
-			.ConstructAndHold(TaskDelegate, GameModeRef, &Counter, 321);
+			.ConstructAndHold(TaskDelegate, GameModeRef, &Counter1, 321);
 
 	}
 	
@@ -64,7 +64,7 @@ void ASRCGraphTaskExample::StartAsyncWork()
 		if (GameModeRef != nullptr)
 		{
 			TGraphTask<FTask_GraphTask>::CreateTask(nullptr, ENamedThreads::AnyThread)
-				.ConstructAndDispatchWhenReady(TaskDelegate, GameModeRef, &Counter, 321);
+				.ConstructAndDispatchWhenReady(TaskDelegate, GameModeRef, &Counter1, 321);
 		}
 	}
 }
