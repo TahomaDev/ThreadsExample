@@ -278,7 +278,7 @@ TArray<FInfoNPC> ATestThreadGameModeBase::GetNPCInfo()
 
 
 void ATestThreadGameModeBase::BusMessageHandler_NameGenerator(const FBusStructMessage_NameGenerator& Message,
-	const TSharedRef<IMessageContext, ESPMode::ThreadSafe>& Context)
+                                                              const TSharedRef<IMessageContext, ESPMode::ThreadSafe>& Context)
 {
 	EventMessage_NameGenerator(Message.bIsSecondName, Message.TextData);
 }
@@ -310,4 +310,59 @@ void ATestThreadGameModeBase::EventMessage_NPCInfo(FInfoNPC NPCData)
 		if (BoxActor != nullptr)
 			BoxActor->Init(NPCData);
 	}
+}
+
+
+void ATestThreadGameModeBase::StartParallel1()
+{
+	FCriticalSection ParallelMutex;
+	ParallelFor(10, [&](int32 Index)
+	{
+		FPlatformProcess::Sleep(0.001f);
+		int32 cout = 0;
+		for (int i = 0; i < 50; i++)
+		{
+			cout++;
+		}
+		ParallelMutex.Lock();
+		ParallelCount1 += cout;
+		ParallelMutex.Unlock();
+		
+	}, EParallelForFlags::BackgroundPriority);
+}
+
+void ATestThreadGameModeBase::StartParallel2()
+{
+	FCriticalSection ParallelMutex;
+	const auto Function = [&](int32 Index)
+	{
+		FPlatformProcess::Sleep(0.1f);
+		int32 cout = 0;
+		for (int i = 0; i < 50; i++)
+		{
+			cout++;
+		}
+		ParallelMutex.Lock();
+		ParallelCount2 += cout;
+		ParallelMutex.Unlock();
+	};
+	
+	ParallelForTemplate(10, Function, EParallelForFlags::BackgroundPriority);
+}
+
+void ATestThreadGameModeBase::StartParallel3()
+{
+	ParallelForWithPreWork(10, [&](int32 Index)
+	{
+		for (int i = 0; i < 50; i++)
+		{
+			++ParallelCount3;
+			UE_LOG(LogTemp, Error, TEXT("i start ParallelForWithPreWork"));
+		}
+	}, []()
+	{
+		UE_LOG(LogTemp, Error, TEXT("i start Help Work"));
+//		FPlatformProcess::Sleep(5.f);
+		UE_LOG(LogTemp, Error, TEXT("i finish Help Work"));
+	}, EParallelForFlags::BackgroundPriority);
 }

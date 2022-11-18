@@ -153,9 +153,23 @@ public:
 	TQueue<FString, EQueueMode::Mpsc> SecondName;
 	TArray<FString> CurrentSecondName;
 
-
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Settings")
 	TSubclassOf<class ASRCBoxActor> ActorSpawn;
+	
+
+
+	UFUNCTION(BlueprintCallable)
+	void StartParallel1();
+	UPROPERTY(BlueprintReadWrite)
+	int32 ParallelCount1 = 0;
+	UFUNCTION(BlueprintCallable)
+	void StartParallel2();
+	UPROPERTY(BlueprintReadWrite)
+	int32 ParallelCount2 = 0;
+	UFUNCTION(BlueprintCallable)
+	void StartParallel3();
+	UPROPERTY(BlueprintReadWrite)
+	int32 ParallelCount3 = 0;
+	
 	
 };
