@@ -59,7 +59,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	UFUNCTION(BlueprintCallable)
-	void StartAsynTaskExample(bool bIsBackgroundTask = true);
+	void StartScopeAsyncTask();
+	UFUNCTION(BlueprintCallable)
+	void StartAsyncTaskExample(bool bIsBackgroundTask = true);
 
 	UPROPERTY(BlueprintAssignable)
 	FAsyncTaskDelegate_OnWorkDone AsyncTaskDelegate_OnWorkDone;

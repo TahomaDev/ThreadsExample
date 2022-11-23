@@ -16,17 +16,6 @@ void ASRCAsyncTask::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [&]()
-	{
-		uint32 i = 0;
-		while (i < 500)
-		{
-			FPlatformProcess::Sleep(0.02f);
-			i++;
-			Counter2 = i;
-		}
-	});
-	
 }
 
 // Called every frame
@@ -41,7 +30,21 @@ void ASRCAsyncTask::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void ASRCAsyncTask::StartAsynTaskExample(bool bIsBackgroundTask)
+void ASRCAsyncTask::StartScopeAsyncTask()
+{
+	AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [&]()
+	{
+		uint32 i = 0;
+		while (i < 500)
+		{
+			FPlatformProcess::Sleep(0.02f);
+			i++;
+			Counter2 = i;
+		}
+	});
+}
+
+void ASRCAsyncTask::StartAsyncTaskExample(bool bIsBackgroundTask)
 {
 	if (bIsBackgroundTask)
 	{
