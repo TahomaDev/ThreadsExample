@@ -146,9 +146,7 @@ public:
 	void StartAsyncWork();
 
 	UPROPERTY(BlueprintReadWrite)
-	int32 Counter1 = 0;
-	UPROPERTY(BlueprintReadWrite)
-	int32 Counter2 = 0;
+	int32 Counter = 0;
 	FTaskDelegate_OnWorkDone TaskDelegate;
 
 	TGraphTask<FTask_GraphTask> *MyCurrentTask;
